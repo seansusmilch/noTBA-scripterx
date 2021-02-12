@@ -121,4 +121,3 @@ Under Emby's `Scheduled Tasks` page, find `Emby ScripterX Scheduled Task` and se
 ![Example](https://i.imgur.com/GZdjkQv.png)
 =======
 Under Emby's `Scheduled Tasks` page, find `Emby ScripterX Scheduled Task` and set it to run on your desired schedule. I recommend daily at 4am.
->>>>>>> 7e1af93b53e42c0415b8b2589da122aab3bd4cd1
