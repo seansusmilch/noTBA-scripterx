@@ -1,4 +1,4 @@
-# No TBA for ScripterX
+# No TBA for Emby ScripterX
 
 Use Python requests, Emby API, Scripter-X to manage episodes with dummy titles and automatically refresh them.
 
