@@ -1,10 +1,12 @@
 import json
 import subprocess
-from queue import Queue
+import sys
 from os import path
+from queue import Queue
 
 import requests
 
+# from configlocal import api_token, base_url, logging_level, recheck_wait_time
 from config import api_token, base_url, logging_level, recheck_wait_time
 
 dir = path.split(path.abspath(__file__))
@@ -13,12 +15,18 @@ dir = dir[0]
 api_json = {"X-Emby-Token": {api_token}}
 headers={"user-agent": "mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/81.0.4044.138 safari/537.36"}
 
+years = '2021'
 
+if len(sys.argv) > 1:
+    if sys.argv[1] == 'None':
+        years = None
+    else:
+        years = sys.argv[1]
 
 ## check all episodes 
 raw_data = {
     'IncludeItemTypes': 'Episode',
-    'Years': '2021',
+    'Years': years,
     'Recursive': True,
     'IsMissing': False
 }

@@ -3,16 +3,21 @@ import logging
 import re
 import sys
 from datetime import datetime
-from os import path, read
+from os import mkdir, path, read
 from time import sleep
 
 import requests
 
+# from configlocal import api_token, base_url, logging_level, recheck_wait_time
 from config import api_token, base_url, logging_level, recheck_wait_time
 
 dir = path.split(path.abspath(__file__))
 dir = dir[0]
 # logging setup
+try:
+    mkdir(dir+'/logs')
+except FileExistsError:
+    pass
 switcher = {
     4: logging.DEBUG,
     3: logging.INFO,

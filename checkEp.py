@@ -2,18 +2,21 @@ import json
 import logging
 import re
 import sys
-import time
 from datetime import datetime
-from os import path
+from os import mkdir, path
 
 import requests
 
+# from configlocal import api_token, base_url, logging_level
 from config import api_token, base_url, logging_level
-
 
 dir = path.split(path.abspath(__file__))
 dir = dir[0]
 # logging setup
+try:
+    mkdir(dir+'/logs')
+except FileExistsError:
+    pass
 switcher = {
     4: logging.DEBUG,
     3: logging.INFO,
