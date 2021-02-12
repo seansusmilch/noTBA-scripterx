@@ -60,7 +60,15 @@ This will allow your server to check episodes as they're added, and automaticall
 First, we need to know the path for python.
 
 ```bash
+# For UNIX
 which python3
+```
+```powershell
+# For PowerShell
+Get-Command python
+
+# For CMD
+where python
 ```
 
 In my case, python is located at `/usr/bin/python3`
