@@ -1,6 +1,6 @@
-# No TBA for ScripterX
+# 🔃 No TBA for Emby
 
-Use Python requests, Emby API, Scripter-X to manage episodes with dummy titles and automatically refresh them.
+Hate having your perfect library ruined by a stray episode titled "Episode XX" or "TBA" because the data wasn't available at the time it was scanned in? These scripts will attempt to solve that by collecting episodes with these placeholder titles and periodically refreshing their metadata until an actual title is found.
 
 ## Requirements
 
@@ -10,12 +10,13 @@ Use Python requests, Emby API, Scripter-X to manage episodes with dummy titles a
 
 # Setup
 
-Start in a directory that your Emby server can see. This is so that we can find the scripts when setting up Scripter-X.
+**Start in a directory that your Emby server can see. This is so that Scripter-X will be able to run them.**
 
 ## Clone repository
 
 ```bash
-git clone https://github.com/stummyhurt/noTBA-scripterx.git no-tba && cd no-tba
+git clone https://github.com/stummyhurt/noTBA-scripterx.git no-tba
+cd no-tba
 ```
 
 ## Install requirements
@@ -37,7 +38,7 @@ base_url = ''
 
 ## Check Current Media (optional)
 
-This will check your current media for episodes with dummy titles.
+This will check your current media for episodes with placeholder titles.
 
 ### **Warning**
 ```
@@ -46,7 +47,7 @@ I highly recommend having your logging level set to 2 (warn) in config.py when d
 
 This process may take awhile depending on how much media is on your server. Send a string of the years you want to check in a comma separated list. By default, the script will check media from the year 2021.
 
-```python 
+```bash 
 # checks media from years 2019, 2020 and 2021
 python ./checkAllEps.py '2019,2020,2021'
 
@@ -57,9 +58,9 @@ python ./checkAllEps.py 'None'
 python ./checkAllEps.py
 ```
 
-## Setup with Scripter-X
+## Scripter-X Setup
 
-This will allow your server to check episodes as they're added, and automatically refresh metadata of those episodes based on a scheduled task.
+This Scripter-X setup will allow your server to check episodes as they're added, and automatically refresh metadata of those episodes based on a scheduled task.
 
 ### Find Python
 
@@ -79,7 +80,7 @@ where python
 
 In my case, python is located at `/usr/bin/python3`
 
-### Add Task for onMediaItemAddedComplete
+### Add Task for **onMediaItemAddedComplete**
 
 Under the Scripter-X plugin page, find the event **onMediaItemAddedComplete** and add a task that matches the following.
 
@@ -97,7 +98,7 @@ Don't forget to click the check mark.
 
 ![Example](https://i.imgur.com/3Jyha6r.png)
 
-### Add Task for onScheduledTask
+### Add Task for **onScheduledTask**
 
 Under the Scripter-X plugin page, find the event **onScheduledTask** and add a task that matches the following.
 
@@ -112,6 +113,8 @@ Don't forget to click the check mark.
 
 ![Example](https://i.imgur.com/aqgIy78.png)
 
-### Set Schedule for onScheduledTask
+### Set Schedule for **onScheduledTask**
 
-Under Emby's `Scheduled Tasks` page, find `Emby ScripterX Scheduled Task` and set it to run on your desired schedule. I recommend daily at 4am.
+Under Emby's `Scheduled Tasks` page, find `Emby ScripterX Scheduled Task` and set it to run on your desired schedule. An example would be to run the script daily at 4am.
+
+![Example](https://i.imgur.com/GZdjkQv.png)
