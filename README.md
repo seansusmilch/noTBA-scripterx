@@ -85,11 +85,11 @@ Under the Scripter-X plugin page, find the event **onMediaItemAddedComplete** an
 /path/to/python3
 
 # Parameters (Quotes are needed!)
-"%item.type%" "%item.id%" "%item.path%" %item.isvirtual%
+"%item.type%" "%item.id%" %item.isvirtual%
 ```
 Don't forget to click the check mark.
 
-![screenshot](https://i.imgur.com/OSZpTmv.png)
+![Example](https://i.imgur.com/3Jyha6r.png)
 
 ### Add Task for onScheduledTask
 
@@ -104,7 +104,7 @@ Under the Scripter-X plugin page, find the event **onScheduledTask** and add a t
 ```
 Don't forget to click the check mark.
 
-![screenshot](https://i.imgur.com/aqgIy78.png)
+![Example](https://i.imgur.com/aqgIy78.png)
 
 ### Set Schedule for onScheduledTask
 
