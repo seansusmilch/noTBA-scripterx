@@ -18,6 +18,12 @@ Start in a directory that your Emby server can see. This is so that we can find 
 git clone https://github.com/stummyhurt/noTBA-scripterx.git no-tba && cd no-tba
 ```
 
+## Install requirements
+
+```bash
+pip install ./requirements.txt
+```
+
 ## Complete Config
 
 All that is needed is the `api_token` and `base_url`
