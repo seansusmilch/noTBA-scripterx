@@ -22,7 +22,7 @@ cd no-tba
 ## Install requirements
 
 ```bash
-pip install -r ./requirements.txt
+pip3 install -r ./requirements.txt
 ```
 
 ## Complete Config
@@ -49,13 +49,13 @@ This process may take awhile depending on how much media is on your server. Send
 
 ```bash 
 # checks media from years 2019, 2020 and 2021
-python ./checkAllEps.py '2019,2020,2021'
+python3 ./checkAllEps.py '2019,2020,2021'
 
 # checks ALL media
-python ./checkAllEps.py 'None'
+python3 ./checkAllEps.py 'None'
 
 # checks media from 2021
-python ./checkAllEps.py
+python3 ./checkAllEps.py
 ```
 
 ## Scripter-X Setup
