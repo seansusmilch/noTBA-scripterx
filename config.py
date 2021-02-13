@@ -11,3 +11,6 @@ logging_level = 2
 
 # Time in seconds to wait before rechecking title after refreshing metadata
 recheck_wait_time = 1
+
+# Number of days to refresh an episode before giving up on it
+days_before_giving_up = 10
