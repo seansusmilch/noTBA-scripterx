@@ -23,6 +23,10 @@ cd no-tba
 
 ```bash
 pip3 install -r ./requirements.txt
+
+# NOTE FOR LINUX: Your emby user must be able to see the modules. 
+# Either add sudo to previous command or install them under your emby user.
+sudo -H -u <EMBY_USER> bash -c 'pip3 install -r ./requirements.txt' 
 ```
 
 ## Complete Config
