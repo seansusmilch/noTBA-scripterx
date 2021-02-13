@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import re
@@ -6,12 +7,12 @@ from datetime import datetime
 from os import mkdir, path
 
 import requests
+from tinydb import TinyDB, where
 
 # from configlocal import api_token, base_url, logging_level
 from config import api_token, base_url, logging_level
 
-dir = path.split(path.abspath(__file__))
-dir = dir[0]
+dir = path.split(path.abspath(__file__))[0]
 # logging setup
 try:
     mkdir(dir+'/logs')
@@ -36,18 +37,12 @@ cons.setFormatter(fmt)
 logging.getLogger('').addHandler(cons)
 logging.debug('Started script!')
 
-# fake_args = ['that one path', 'Episode', '146603', 'B:/media/Sonarr/Weeb/Gangsta/Season 01/Gangsta. - S01E01 - Bluray-1080p.mkv', False]
-# item_type = fake_args[1]
-# item_id = fake_args[2]
-# item_path = fake_args[3]
-# item_isvirtual = fake_args[4]
-
 api_json = {"X-Emby-Token": {api_token}}
 headers={"user-agent": "mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/81.0.4044.138 safari/537.36"}
 
 regex = r"^(Episode )([0-9][0-9][0-9]|[0-9][0-9]|[0-9]|)|(TBA)$"        # This regex checks for 'Episode xxx' and 'TBA'
 
-def check_episode(item_id):
+async def check_episode(item_id, episodes):
 
     logging.info(f'CHECKING item {item_id}')
     raw_data = {
@@ -70,21 +65,21 @@ def check_episode(item_id):
     if re.findall(regex, item_name):
         # add to list of items that need an update
         # creation_date = datetime.fromtimestamp(path.getmtime(item_path)).strftime('%D %H:%M:%S')
-        creation_date = datetime.now().strftime('%D %H:%M:%S')
+        if episodes.contains(where('id') == item_id):
+            logging.info(f'This id is already in the database. {item_id}')
+            return
 
-        with open(dir+'/data.dat') as ids_file:
-            text = ids_file.read()
+        logging.warning(f'ADDING item {item_id} - {item_series} - {item_name}')
+        now = datetime.now().strftime('%Y-%m-%d %H:%M')
 
-        with open(dir+'/data.dat', 'a') as ids_file:
-            if not text.endswith('\n') and text != '':
-                ids_file.write('\n')
-            ids_file.write(f'{creation_date}\t{item_id}\t{item_series}\t{item_name}')
-            logging.warning(f'ADDING item {item_id} - {item_series} - {item_name}')
-            ids_file.close()
+        episodes.insert({
+            'id': item_id,
+            'series': item_series,
+            'last_title': item_name,
+            'checked_since': now
+        })
     else:
         logging.debug('Episode title changed! LETS GOOOOO')
-
-# check_episode(item_id, item_path)
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
@@ -95,17 +90,12 @@ if __name__ == '__main__':
 
     item_type = sys.argv[1]
     item_id = sys.argv[2]
-    # item_path = sys.argv[3]
     item_isvirtual = sys.argv[3].lower() in ['1', 'true']
 
     if item_type != 'Episode' or item_isvirtual:        # Exit if item is virtual or is not an episode
-        print('exiting ', item_type, ' ', item_isvirtual)
+        logging.warning(f'Item is virtual. Exiting. ARGS={item_id};{item_type};{item_isvirtual}')
         sys.exit()
-
-    # make sure data.dat exists
-    try:
-        open(dir+'/data.dat', mode='x')
-    except FileExistsError:
-        pass
-
-    check_episode(item_id)
+    db = TinyDB(f'{dir}/db.json')
+    episodes = db.table('Episodes')
+    asyncio.run(check_episode(item_id, episodes))
+    db.close()
