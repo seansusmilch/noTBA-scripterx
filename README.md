@@ -45,7 +45,7 @@ This will check your current media for episodes with placeholder titles.
 I highly recommend having your logging level set to 2 (warn) in config.py when doing this
 ```
 
-This process may take awhile depending on how much media is on your server. Send a string of the years you want to check in a comma separated list. By default, the script will check media from the year 2021.
+Send a string of the years you want to check in a comma separated list. By default, the script will check media from the year 2021.
 
 ```bash 
 # checks media from years 2019, 2020 and 2021
@@ -118,5 +118,3 @@ Don't forget to click the check mark.
 Under Emby's `Scheduled Tasks` page, find `Emby ScripterX Scheduled Task` and set it to run on your desired schedule. An example would be to run the script daily at 4am.
 
 ![Example](https://i.imgur.com/GZdjkQv.png)
-
-Under Emby's `Scheduled Tasks` page, find `Emby ScripterX Scheduled Task` and set it to run on your desired schedule. I recommend daily at 4am.
