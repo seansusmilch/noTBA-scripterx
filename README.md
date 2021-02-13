@@ -66,6 +66,8 @@ python3 ./checkAllEps.py
 
 This Scripter-X setup will allow your server to check episodes as they're added, and automatically refresh metadata of those episodes based on a scheduled task.
 
+**Note for Linux:** Your emby user must be able to write to the directory.
+
 ### Find Python
 
 First, we need to know the path for python.
