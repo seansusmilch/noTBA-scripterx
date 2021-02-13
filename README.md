@@ -115,7 +115,6 @@ Don't forget to click the check mark.
 
 ### Set Schedule for **onScheduledTask**
 
-<<<<<<< HEAD
 Under Emby's `Scheduled Tasks` page, find `Emby ScripterX Scheduled Task` and set it to run on your desired schedule. An example would be to run the script daily at 4am.
 
 ![Example](https://i.imgur.com/GZdjkQv.png)
