@@ -63,14 +63,16 @@ for ep in episodes.all():
         current_title = data.get("Items")[0].get("Name").strip()
         series_name = data.get('Items')[0].get('SeriesName')
     except json.JSONDecodeError:
-        logging.critical('Failed to parse as JSON! Response= %d %s' % (res.status_code, res.text))
+        logging.critical(f'Failed to parse as JSON! Response={res.status_code} {res.text}')
         sys.exit()
-    except IndexError as e:
+    except IndexError:
         if data.get("TotalRecordCount") == 0:
-            logging.error(f'DELETING item {item_id} - Item doesnt exist on Emby') 
+            logging.error(f'DELETING item {item_id} - Item doesnt exist on Emby')
+            episodes.remove(where('id')==item_id)
+            continue
 
         else:
-            logging.critical(f'Bro wtf hapen idk what happen heres res.text: {res.text}')
+            logging.critical(f'Bro wtf hapen idk what happened {item_id} {res.text}')
             sys.exit()
     
     if re.findall(regex, current_title):     
