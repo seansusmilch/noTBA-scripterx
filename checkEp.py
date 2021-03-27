@@ -6,7 +6,7 @@ import sys
 from datetime import datetime
 from os import mkdir, path
 
-import requests
+from helpers import get_current_title
 from tinydb import TinyDB, where
 
 # from configlocal import api_token, base_url, logging_level
@@ -37,49 +37,37 @@ cons.setFormatter(fmt)
 logging.getLogger('').addHandler(cons)
 logging.debug('Started script!')
 
-api_json = {"X-Emby-Token": {api_token}}
+api_json = {"X-Emby-Token": api_token}
 headers={"user-agent": "mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/81.0.4044.138 safari/537.36"}
+headers.update(api_json)
 
 regex = r"^(Episode )([0-9][0-9][0-9]|[0-9][0-9]|[0-9]|)|(TBA)$"        # This regex checks for 'Episode xxx' and 'TBA'
 
 async def check_episode(item_id, episodes):
 
     logging.info(f'CHECKING item {item_id}')
-    raw_data = {
-        'Ids': {item_id}
-    }
-    raw_data.update(api_json)
-    logging.debug('Sending request...')
-    res = requests.get(base_url+'/Items', params=raw_data, headers=headers)
 
-    try:
-        data = json.loads(res.text)
-        logging.debug('Response received and parsed!')
-    except json.decoder.JSONDecodeError as e:
-        e=e
-        logging.critical('Failed to parse as JSON! Response=' + res.status_code + '@' + res.text)
+    current_title, series_name = get_current_title(item_id)
 
-    item_name = data.get("Items")[0].get("Name")
-    item_series = data.get('Items')[0].get('SeriesName')
-
-    if re.findall(regex, item_name):
-        # add to list of items that need an update
-        # creation_date = datetime.fromtimestamp(path.getmtime(item_path)).strftime('%D %H:%M:%S')
-        if episodes.contains(where('id') == item_id):
-            logging.info(f'This id is already in the database. {item_id}')
-            return
-
-        logging.warning(f'ADDING item {item_id} - {item_series} - {item_name}')
-        now = datetime.now().strftime('%Y-%m-%d %H:%M')
-
-        episodes.insert({
-            'id': item_id,
-            'series': item_series,
-            'last_title': item_name,
-            'checked_since': now
-        })
-    else:
+    if not re.findall(regex, current_title):
         logging.debug('Episode title changed! LETS GOOOOO')
+        return
+
+    # item needs to be refreshed. add to database.
+    if episodes.contains(where('id') == item_id):
+        logging.info(f'This id is already in the database. {item_id}')
+        return
+
+    logging.warning(f'ADDING item {item_id} - {series_name} - {current_title}')
+    now = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+    episodes.insert({
+        'id': item_id,
+        'series': series_name,
+        'last_title': current_title,
+        'checked_since': now
+    })
+        
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:

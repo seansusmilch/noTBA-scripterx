@@ -15,7 +15,7 @@ dir = path.split(path.abspath(__file__))[0]
 # logging setup
 logging.StreamHandler()
 
-api_json = {"X-Emby-Token": {api_token}}
+api_json = {"X-Emby-Token": api_token}
 headers={"user-agent": "mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/81.0.4044.138 safari/537.36"}
 
 years = '2021'
