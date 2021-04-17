@@ -1,71 +1,54 @@
 import asyncio
-import json
 import logging
-import re
 import sys
 from datetime import datetime
-from os import mkdir, path
+from os import path
 
-from helpers import get_current_title
-from tinydb import TinyDB, where
+from tinydb import TinyDB, table, where
 
-# from configlocal import api_token, base_url, logging_level
-from config import api_token, base_url, logging_level
+from helpers import (get_current_title_by_id, has_placeholder_thumb,
+                     is_placeholder_title, logging_setup)
 
 dir = path.split(path.abspath(__file__))[0]
-# logging setup
-try:
-    mkdir(dir+'/logs')
-except FileExistsError:
-    pass
-switcher = {
-    4: logging.DEBUG,
-    3: logging.INFO,
-    2: logging.WARNING,
-    1: logging.ERROR,
-    0: logging.CRITICAL
-}
-logging.basicConfig(filename=dir+'/logs/addNewId.log',
-    level=switcher.get(logging_level, logging.DEBUG),
-    datefmt="%Y-%m-%d %H:%M:%S",
-    format='%(asctime)s - %(levelname)s - %(message)s'
-    )
-cons = logging.StreamHandler()
-cons.setLevel(switcher.get(logging_level, logging.DEBUG))
-fmt = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', "%Y-%m-%d %H:%M:%S")
-cons.setFormatter(fmt)
-logging.getLogger('').addHandler(cons)
-logging.debug('Started script!')
 
-api_json = {"X-Emby-Token": api_token}
-headers={"user-agent": "mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/81.0.4044.138 safari/537.36"}
-headers.update(api_json)
+logging_setup(__file__)
 
-regex = r"^(Episode )([0-9][0-9][0-9]|[0-9][0-9]|[0-9]|)|(TBA)$"        # This regex checks for 'Episode xxx' and 'TBA'
-
-async def check_episode(item_id, episodes):
+async def check_episode(item_id, episodes:table.Table):
 
     logging.info(f'CHECKING item {item_id}')
 
-    current_title, series_name = get_current_title(item_id)
+    current_title, series_name = get_current_title_by_id(item_id)
 
-    if not re.findall(regex, current_title):
-        logging.debug('Episode title changed! LETS GOOOOO')
+    if current_title == None and series_name == None:
+        logging.error(f'Item {item_id} doesnt exist on Emby')
         return
 
+    needs_thumb = has_placeholder_thumb(item_id)
+    needs_title = is_placeholder_title(current_title)
+
+    if not needs_title and not needs_thumb:
+        logging.debug('Episode has valid title & thumbnail!')
+        return
+    
     # item needs to be refreshed. add to database.
     if episodes.contains(where('id') == item_id):
-        logging.info(f'This id is already in the database. {item_id}')
+        logging.info(f'This id is already in the database. Updaing values. {item_id} {current_title} needs:{" thumb" if needs_thumb else ""}{" title" if needs_title else ""}')
+        episodes.update({
+            'needs_thumb': needs_thumb,
+            'needs_title': needs_title
+        },where('id') == item_id)
         return
 
-    logging.warning(f'ADDING item {item_id} - {series_name} - {current_title}')
+    logging.warning(f'ADDING item {item_id} - {series_name} - {current_title} - needs:{" thumb" if needs_thumb else ""}{" title" if needs_title else ""}')
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
 
     episodes.insert({
         'id': item_id,
         'series': series_name,
         'last_title': current_title,
-        'checked_since': now
+        'checked_since': now,
+        'needs_title': needs_thumb,
+        'needs_thumb': needs_title
     })
         
 
@@ -81,9 +64,9 @@ if __name__ == '__main__':
     item_isvirtual = sys.argv[3].lower() in ['1', 'true']
 
     if item_type != 'Episode' or item_isvirtual:        # Exit if item is virtual or is not an episode
-        logging.warning(f'Item is virtual. Exiting. ARGS={item_id};{item_type};{item_isvirtual}')
+        logging.info(f'Item is virtual. Exiting. ARGS={item_id};{item_type};{item_isvirtual}')
         sys.exit()
-    db = TinyDB(f'{dir}/db.json')
-    episodes = db.table('Episodes')
+    db = TinyDB(f'{dir}/db.json', sort_keys=True, indent=4, separators=(',', ': '))
+    episodes = db.table('Episodes', cache_size=3)
     asyncio.run(check_episode(item_id, episodes))
     db.close()

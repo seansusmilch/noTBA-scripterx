@@ -1,61 +1,77 @@
 import asyncio
+import importlib
 import json
 import logging
 import sys
+from datetime import datetime
 from os import path
 
 import requests
 from tinydb import TinyDB
 
 from checkEp import check_episode
-# from configlocal import api_token, base_url, logging_level, recheck_wait_time
-from config import api_token, base_url, logging_level, recheck_wait_time
 
 dir = path.split(path.abspath(__file__))[0]
+
 # logging setup
 logging.StreamHandler()
 
-api_json = {"X-Emby-Token": api_token}
-headers={"user-agent": "mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/81.0.4044.138 safari/537.36"}
+async def main():
+    if not api_token or not base_url:
+        logging.critical('Either your api_token or base_url is blank!')
+        sys.exit()
+    api_json = {"X-Emby-Token": api_token}
+    headers={"user-agent": "mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/81.0.4044.138 safari/537.36"}
+    headers.update(api_json)
 
-years = '2021'
+    print(api_token, base_url)
 
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'None':
-        years = None
-    else:
-        years = sys.argv[1]
+    years = datetime.now().year if len(sys.argv)==1 else None if sys.argv[1].lower() in ['all','none'] else sys.argv[1]
+    logging.warning(f'Years={years}')
+    raw_data = {
+        'IncludeItemTypes': 'Episode',
+        'Years': years,
+        'Recursive': True,
+        'IsMissing': False,
+    }
 
-## check all episodes 
-raw_data = {
-    'IncludeItemTypes': 'Episode',
-    'Years': years,
-    'Recursive': True,
-    'IsMissing': False,
-}
-raw_data.update(api_json)
+    def get_items(params):
+        res = requests.get(f'{base_url}/Items', params=params, headers=headers)
+        try:
+            data = json.loads(res.text)
+        except json.decoder.JSONDecodeError:
+            print(res.text)
+            return []
+        items = []
+        for item in data.get('Items'):
+            id = item.get("Id")
+            items.append(id)
+        return items
 
-ids = []
-for q in ['Episode ', 'TBA']:
+    ids = []
+    if not check_thumbs:
+        for q in ['Episode ', 'TBA']:
+            raw_data.update({'NameStartsWith': q})
+            ids += get_items(raw_data)
 
-    raw_data.update({'NameStartsWith': q})
+    if check_thumbs:
+        ids = get_items(raw_data)
 
-    res = requests.get(base_url+'/Items', params=raw_data, headers=headers)
-    try:
-        data = json.loads(res.text)
-    except json.decoder.JSONDecodeError:
-        print(res.text)
-
-    for item in data.get('Items'):
-        id = item.get("Id")
-        ids.append(id)
-
-async def run():    
-    print('Checking %s ids!' % len(ids))
-    db = TinyDB(f'{dir}/db.json')
-    episodes = db.table('Episodes')
-
+    logging.warning(f'Checking {len(ids)} ids!')
+    db = TinyDB(f'{dir}/db.json', indent=4, separators=(',', ': '))
+    episodes = db.table('Episodes', cache_size=3)
+    
     ps = [asyncio.create_task(check_episode(id, episodes)) for id in ids]
-    done,pending = await asyncio.wait(ps)
+    await asyncio.wait(ps)
+    db.close()
+ 
+if __name__ == '__main__':
+    conf = importlib.import_module('config')
+    if path.isfile(f'{dir}/config_local.py'):
+        conf = importlib.import_module('config_local')
 
-asyncio.run(run())
+    api_token = conf.api_token
+    base_url = conf.base_url
+    check_thumbs = conf.check_thumbs
+
+    asyncio.run(main())
