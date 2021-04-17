@@ -57,7 +57,7 @@ async def main():
         ids = get_items(raw_data)
 
     logging.warning(f'Checking {len(ids)} ids!')
-    with alive_bar(len(ids), calibrate=1000, bar='blocks', spinner='dots_waves2') as bar:
+    with alive_bar(len(ids), bar='blocks', spinner='dots_waves2') as bar:
         db = TinyDB(f'{dir}/db.json', indent=4, separators=(',', ': '))
         episodes = db.table('Episodes', cache_size=3)
 
