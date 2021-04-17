@@ -24,8 +24,6 @@ async def main():
     headers={"user-agent": "mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/81.0.4044.138 safari/537.36"}
     headers.update(api_json)
 
-    print(api_token, base_url)
-
     years = datetime.now().year if len(sys.argv)==1 else None if sys.argv[1].lower() in ['all','none'] else sys.argv[1]
     logging.warning(f'Years={years}')
     raw_data = {
