@@ -5,6 +5,7 @@ import logging
 import sys
 from datetime import datetime
 from os import path
+from alive_progress import alive_bar
 
 import requests
 from tinydb import TinyDB
@@ -56,11 +57,17 @@ async def main():
         ids = get_items(raw_data)
 
     logging.warning(f'Checking {len(ids)} ids!')
-    db = TinyDB(f'{dir}/db.json', indent=4, separators=(',', ': '))
-    episodes = db.table('Episodes', cache_size=3)
+    with alive_bar(len(ids), calibrate=1000, bar='blocks', spinner='dots_waves2') as bar:
+        db = TinyDB(f'{dir}/db.json', indent=4, separators=(',', ': '))
+        episodes = db.table('Episodes', cache_size=3)
+
+        async def run_with_progress(id):
+            await check_episode(id, episodes)
+            bar()
+
+        ps = [asyncio.create_task(run_with_progress(id)) for id in ids]
+        await asyncio.wait(ps)
     
-    ps = [asyncio.create_task(check_episode(id, episodes)) for id in ids]
-    await asyncio.wait(ps)
     db.close()
  
 if __name__ == '__main__':
