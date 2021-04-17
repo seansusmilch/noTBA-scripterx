@@ -5,9 +5,10 @@ import logging
 import sys
 from datetime import datetime
 from os import path
-from alive_progress import alive_bar
+from queue import Queue
 
 import requests
+from alive_progress import alive_bar
 from tinydb import TinyDB
 
 from checkEp import check_episode
@@ -65,8 +66,22 @@ async def main():
             await check_episode(id, episodes)
             bar()
 
-        ps = [asyncio.create_task(run_with_progress(id)) for id in ids]
-        await asyncio.wait(ps)
+        # Optimal qsize limit might be 8
+        # 3 = 59.9
+        # 5 = 61.4
+        # 7 = 58.5
+        # 8 = 64
+        # 9 = 59.5
+        # 10 = 57.6
+
+        ps = Queue()
+        for id in ids:
+            while ps.qsize() > limit_concurrent_requests:
+                await ps.get()
+            ps.put(asyncio.create_task(run_with_progress(id)))
+
+        while not ps.empty():
+            await ps.get()
     
     db.close()
  
@@ -78,5 +93,6 @@ if __name__ == '__main__':
     api_token = conf.api_token
     base_url = conf.base_url
     check_thumbs = conf.check_thumbs
+    limit_concurrent_requests = conf.limit_concurrent_requests
 
     asyncio.run(main())

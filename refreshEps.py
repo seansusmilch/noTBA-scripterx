@@ -3,6 +3,7 @@ import importlib
 import logging
 from datetime import datetime, timedelta
 from os import path
+from queue import Queue
 from time import sleep
 
 import requests
@@ -23,6 +24,7 @@ base_url = conf.base_url
 days_before_giving_up = conf.days_before_giving_up
 logging_level = conf.logging_level
 recheck_wait_time = conf.recheck_wait_time
+limit_concurrent_requests = conf.limit_concurrent_requests
 
 logging_setup(__file__)
 
@@ -33,6 +35,8 @@ headers.update(api_json)
 
 async def refresh_ep(ep:object, episodes:table.Table):
     item_id = ep['id']
+    # needs_thumb = ep['needs_thumb']
+    # needs_title = ep['needs_title']
     checked_since = datetime.strptime(ep['checked_since'], '%Y-%m-%d %H:%M')
     
     # get current name of item
@@ -47,7 +51,7 @@ async def refresh_ep(ep:object, episodes:table.Table):
 
     if not needs_title and not needs_thumb:   
         # does not have dummy episode title, dont write it back to the file
-        logging.warning(f'DELETING item {item_id} - {series_name} - {current_title}')
+        logging.warning(f'DELETING item {item_id} - {series_name} - {current_title} - Thumb and title already good')
         episodes.remove(where('id') == item_id)
         return
     
@@ -63,7 +67,7 @@ async def refresh_ep(ep:object, episodes:table.Table):
     if(res.status_code < 400):
         logging.debug(f'Successfully refreshed ID {item_id}')
     else:
-        logging.critical(f'Something went wrong refreshing {item_id}! Returned code {res.status_code}, {res.text}')
+        logging.critical(f'Something went wrong refreshing {item_id}! Returned {res.status_code} - {res.text}')
     
     
     # wait then check if name has changed
@@ -76,7 +80,7 @@ async def refresh_ep(ep:object, episodes:table.Table):
 
     if not needs_title and not needs_thumb:   
         # does not have dummy episode title, dont write it back to the file
-        logging.warning(f'DELETING item {item_id} - {series_name} - {current_title}')
+        logging.warning(f'DELETING item {item_id} - {series_name} - {current_title} - Thumb and title good')
         episodes.remove(where('id') == item_id)
         return
 
@@ -99,8 +103,15 @@ async def main():
     episodes = db.table('Episodes', cache_size=3)
 
     try:
-        ps = [asyncio.create_task(refresh_ep(ep, episodes)) for ep in episodes.all()]
-        await asyncio.wait(ps)
+        ps = Queue()
+        for ep in episodes.all():
+            while ps.qsize() > limit_concurrent_requests:
+                logging.info('Queue too big! Waiting for some to finish')
+                await ps.get()
+            ps.put(asyncio.create_task(refresh_ep(ep, episodes)))
+
+        while not ps.empty():
+            await ps.get()
     except:
         pass
     finally:
