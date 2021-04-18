@@ -55,8 +55,8 @@ Send a string of the years you want to check in a comma separated list. By defau
 # checks media from years 2019, 2020 and 2021
 python3 ./checkAllEps.py '2019,2020,2021'
 
-# checks ALL media
-python3 ./checkAllEps.py 'None'
+# checks media from all years
+python3 ./checkAllEps.py all
 
 # checks media from 2021
 python3 ./checkAllEps.py
