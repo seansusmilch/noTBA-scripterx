@@ -6,6 +6,8 @@ import sys
 from functools import lru_cache
 from os import mkdir, path
 
+from db import theSqliteDict
+
 import requests
 
 dir = path.split(path.abspath(__file__))[0]
@@ -19,6 +21,10 @@ api_token = conf.api_token
 base_url = conf.base_url
 check_thumbs = conf.check_thumbs
 logging_level = conf.logging_level
+
+# check api_token and base_url
+if not api_token or not base_url:
+    raise ValueError('Missing api_token or base_url. Check your config!')
 
 api_json = {"X-Emby-Token": api_token}
 headers={"user-agent": "mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/537.36 (khtml, like gecko) chrome/81.0.4044.138 safari/537.36"}
@@ -113,3 +119,33 @@ def logging_setup(file:str):
     cons.setFormatter(fmt)
     logging.getLogger('').addHandler(cons)
     logging.debug('Started script!')
+
+def get_db(autocommit=True):
+    # DB_TIMEOUT = 10     # seconds
+    # SLEEP_TIME = .05     # seconds
+
+    # count = 0
+    # while Path(f'{dir}/db.lock').exists():
+    #     if count >= DB_TIMEOUT:
+    #         logging.critical('DB timed out. Exiting.')
+    #         sys.exit('DB timed out.')
+    #     logging.debug('db is locked! waiting for a second...')
+    #     sleep(SLEEP_TIME)
+    #     count+=SLEEP_TIME
+    # Path(f'{dir}/db.lock').touch()
+    # return TinyDB(f'{dir}/db.json', sort_keys=True, indent=4, separators=(',', ': '))
+    return theSqliteDict(
+        './db.sqlite', 
+        autocommit=autocommit, 
+        tablename='episodes',
+        encode=json.dumps,
+        decode=json.loads
+        )
+
+# def close_db(db:theSqliteDict):
+#     # logging.warning('Closing DB...')
+#     db.close()
+#     # if not Path(f'{dir}/db.lock').exists():
+#     #     logging.error('DB being closed when it is not locked! This may cause corruption or loss of data.')
+#     # else:
+#     #     Path(f'{dir}/db.lock').unlink()

@@ -1,4 +1,5 @@
 import asyncio
+from helpers import get_db
 import importlib
 import json
 import logging
@@ -9,7 +10,6 @@ from queue import Queue
 
 import requests
 from alive_progress import alive_bar
-from tinydb import TinyDB
 
 from checkEp import check_episode
 
@@ -59,11 +59,12 @@ async def main():
 
     logging.warning(f'Checking {len(ids)} ids!')
     with alive_bar(len(ids), bar='blocks', spinner='dots_waves2') as bar:
-        db = TinyDB(f'{dir}/db.json', indent=4, separators=(',', ': '))
-        episodes = db.table('Episodes', cache_size=3)
+        # db = TinyDB(f'{dir}/db.json', indent=4, separators=(',', ': '))
+        db = get_db()
+        # episodes = db.table('Episodes', cache_size=3)
 
         async def run_with_progress(id):
-            await check_episode(id, episodes)
+            await check_episode(id, db)
             bar()
 
         # Optimal qsize limit might be 8

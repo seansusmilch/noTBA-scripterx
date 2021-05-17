@@ -4,3 +4,4 @@ data.dat
 logs
 *local*
 db.json
+db.sqlite

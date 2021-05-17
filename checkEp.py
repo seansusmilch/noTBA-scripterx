@@ -1,19 +1,22 @@
+from db import theSqliteDict
 import asyncio
 import logging
 import sys
 from datetime import datetime
 from os import path
 
-from tinydb import TinyDB, table, where
+# from tinydb import where
+# from tinydb.database import table
 
-from helpers import (get_current_title_by_id, has_placeholder_thumb,
-                     is_placeholder_title, logging_setup)
+from helpers import (get_current_title_by_id, get_db,
+                     has_placeholder_thumb, is_placeholder_title,
+                     logging_setup)
 
 dir = path.split(path.abspath(__file__))[0]
 
 logging_setup(__file__)
 
-async def check_episode(item_id, episodes:table.Table):
+async def check_episode(item_id, episodes:theSqliteDict):
 
     logging.info(f'CHECKING item {item_id}')
 
@@ -31,26 +34,38 @@ async def check_episode(item_id, episodes:table.Table):
         return
     
     # item needs to be refreshed. add to database.
-    if episodes.contains(where('id') == item_id):
+    # if episodes.contains(where('id') == item_id):
+    if episodes._contains(item_id):
         logging.info(f'This id is already in the database. Updaing values. {item_id} {current_title} needs:{" thumb" if needs_thumb else ""}{" title" if needs_title else ""}')
-        episodes.update({
+        # episodes.update({
+        #     'needs_thumb': needs_thumb,
+        #     'needs_title': needs_title
+        # },where('id') == item_id)
+        episodes._update({
             'needs_thumb': needs_thumb,
             'needs_title': needs_title
-        },where('id') == item_id)
+        }, item_id)
         return
 
     logging.warning(f'ADDING item {item_id} - {series_name} - {current_title} - needs:{" thumb" if needs_thumb else ""}{" title" if needs_title else ""}')
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
 
-    episodes.insert({
+    # episodes.insert({
+    #     'id': item_id,
+    #     'series': series_name,
+    #     'last_title': current_title,
+    #     'checked_since': now,
+    #     'needs_title': needs_thumb,
+    #     'needs_thumb': needs_title
+    # })
+    episodes._set(item_id, {
         'id': item_id,
         'series': series_name,
         'last_title': current_title,
         'checked_since': now,
-        'needs_title': needs_thumb,
-        'needs_thumb': needs_title
+        'needs_title': needs_title,
+        'needs_thumb': needs_thumb
     })
-        
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
@@ -66,7 +81,9 @@ if __name__ == '__main__':
     if item_type != 'Episode' or item_isvirtual:        # Exit if item is virtual or is not an episode
         logging.info(f'Item is virtual. Exiting. ARGS={item_id};{item_type};{item_isvirtual}')
         sys.exit()
-    db = TinyDB(f'{dir}/db.json', sort_keys=True, indent=4, separators=(',', ': '))
-    episodes = db.table('Episodes', cache_size=3)
-    asyncio.run(check_episode(item_id, episodes))
+    # db = TinyDB(f'{dir}/db.json', sort_keys=True, indent=4, separators=(',', ': '))
+    db = get_db()
+    # episodes = db.table('Episodes', cache_size=3)
+    asyncio.run(check_episode(item_id, db))
     db.close()
+    # close_db(db)

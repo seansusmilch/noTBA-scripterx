@@ -7,9 +7,10 @@ from queue import Queue
 from time import sleep
 
 import requests
-from tinydb import TinyDB, table, where
+# from tinydb import TinyDB, where
+from db import theSqliteDict
 
-from helpers import (get_current_title_by_id, has_placeholder_thumb,
+from helpers import (get_current_title_by_id, get_db, has_placeholder_thumb,
                      is_placeholder_title, logging_setup)
 
 dir = path.split(path.abspath(__file__))[0]
@@ -33,7 +34,7 @@ headers={"user-agent": "mozilla/5.0 (windows nt 10.0; win64; x64) applewebkit/53
 headers.update(api_json)
 
 
-async def refresh_ep(ep:object, episodes:table.Table):
+async def refresh_ep(ep:object, episodes:theSqliteDict):
     item_id = ep['id']
     # needs_thumb = ep['needs_thumb']
     # needs_title = ep['needs_title']
@@ -43,7 +44,8 @@ async def refresh_ep(ep:object, episodes:table.Table):
     current_title, series_name = get_current_title_by_id(item_id)
     if current_title == None and series_name == None:
         logging.error(f'DELETING item {item_id} - Item doesnt exist on Emby')
-        episodes.remove(where('id')==item_id)
+        # episodes.remove(where('id')==item_id)
+        episodes._remove(item_id)
         return
     
     needs_title = is_placeholder_title(current_title)
@@ -52,7 +54,8 @@ async def refresh_ep(ep:object, episodes:table.Table):
     if not needs_title and not needs_thumb:   
         # does not have dummy episode title, dont write it back to the file
         logging.warning(f'DELETING item {item_id} - {series_name} - {current_title} - Thumb and title already good')
-        episodes.remove(where('id') == item_id)
+        # episodes.remove(where('id') == item_id)
+        episodes._remove(item_id)
         return
     
     # has filler episode title, refresh it
@@ -81,34 +84,46 @@ async def refresh_ep(ep:object, episodes:table.Table):
     if not needs_title and not needs_thumb:   
         # does not have dummy episode title, dont write it back to the file
         logging.warning(f'DELETING item {item_id} - {series_name} - {current_title} - Thumb and title good')
-        episodes.remove(where('id') == item_id)
+        # episodes.remove(where('id') == item_id)
+        episodes._remove(item_id)
         return
 
     if datetime.now() - checked_since >= timedelta(days=days_before_giving_up):
         logging.warning(f'GIVING UP on {item_id} - {series_name} - {current_title} - needs:{" thumb" if needs_thumb else ""}{" title" if needs_title else ""}')
-        episodes.remove(where('id') == item_id)
+        # episodes.remove(where('id') == item_id)
+        episodes._remove(item_id)
+        return
     
     logging.info(f'Item {item_id} - {series_name} - {current_title} - needs:{" thumb" if needs_thumb else ""}{" title" if needs_title else ""}')
 
-    episodes.update({
+    # episodes.update({
+    #     'series': series_name,
+    #     'last_title': current_title,
+    #     'needs_title': needs_title,
+    #     'needs_thumb': needs_thumb
+    # }, where('id') == item_id)
+    episodes._update({
         'series': series_name,
         'last_title': current_title,
         'needs_title': needs_title,
         'needs_thumb': needs_thumb
-    }, where('id') == item_id)
+    }, item_id)
 
 
 async def main():
-    db = TinyDB(f'{dir}/db.json', sort_keys=True, indent=4, separators=(',', ': '))
-    episodes = db.table('Episodes', cache_size=3)
+    # db = TinyDB(f'{dir}/db.json', sort_keys=True, indent=4, separators=(',', ': '))
+    db = get_db()
+    # episodes = db.table('Episodes', cache_size=3)
+    # db = theSqliteDict('./db.sqlite', autocommit=True, tablename='episodes')
+
 
     try:
         ps = Queue()
-        for ep in episodes.all():
+        for ep in db._all():
             while ps.qsize() > limit_concurrent_requests:
-                logging.info('Queue too big! Waiting for some to finish')
+                logging.debug('Queue too big! Waiting for some to finish')
                 await ps.get()
-            ps.put(asyncio.create_task(refresh_ep(ep, episodes)))
+            ps.put(asyncio.create_task(refresh_ep(ep, db)))
 
         while not ps.empty():
             await ps.get()
@@ -116,6 +131,7 @@ async def main():
         pass
     finally:
         db.close()
+        # close_db(db)
 
 if __name__ == '__main__':
     asyncio.run(main())
