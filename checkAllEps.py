@@ -59,9 +59,7 @@ async def main():
 
     logging.warning(f'Checking {len(ids)} ids!')
     with alive_bar(len(ids), bar='blocks', spinner='dots_waves2') as bar:
-        # db = TinyDB(f'{dir}/db.json', indent=4, separators=(',', ': '))
         db = get_db()
-        # episodes = db.table('Episodes', cache_size=3)
 
         async def run_with_progress(id):
             await check_episode(id, db)

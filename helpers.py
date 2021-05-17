@@ -121,19 +121,6 @@ def logging_setup(file:str):
     logging.debug('Started script!')
 
 def get_db(autocommit=True):
-    # DB_TIMEOUT = 10     # seconds
-    # SLEEP_TIME = .05     # seconds
-
-    # count = 0
-    # while Path(f'{dir}/db.lock').exists():
-    #     if count >= DB_TIMEOUT:
-    #         logging.critical('DB timed out. Exiting.')
-    #         sys.exit('DB timed out.')
-    #     logging.debug('db is locked! waiting for a second...')
-    #     sleep(SLEEP_TIME)
-    #     count+=SLEEP_TIME
-    # Path(f'{dir}/db.lock').touch()
-    # return TinyDB(f'{dir}/db.json', sort_keys=True, indent=4, separators=(',', ': '))
     return theSqliteDict(
         './db.sqlite', 
         autocommit=autocommit, 
@@ -141,11 +128,3 @@ def get_db(autocommit=True):
         encode=json.dumps,
         decode=json.loads
         )
-
-# def close_db(db:theSqliteDict):
-#     # logging.warning('Closing DB...')
-#     db.close()
-#     # if not Path(f'{dir}/db.lock').exists():
-#     #     logging.error('DB being closed when it is not locked! This may cause corruption or loss of data.')
-#     # else:
-#     #     Path(f'{dir}/db.lock').unlink()

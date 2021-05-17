@@ -7,9 +7,8 @@ from queue import Queue
 from time import sleep
 
 import requests
-# from tinydb import TinyDB, where
-from db import theSqliteDict
 
+from db import theSqliteDict
 from helpers import (get_current_title_by_id, get_db, has_placeholder_thumb,
                      is_placeholder_title, logging_setup)
 
@@ -36,15 +35,12 @@ headers.update(api_json)
 
 async def refresh_ep(ep:object, episodes:theSqliteDict):
     item_id = ep['id']
-    # needs_thumb = ep['needs_thumb']
-    # needs_title = ep['needs_title']
     checked_since = datetime.strptime(ep['checked_since'], '%Y-%m-%d %H:%M')
     
     # get current name of item
     current_title, series_name = get_current_title_by_id(item_id)
     if current_title == None and series_name == None:
         logging.error(f'DELETING item {item_id} - Item doesnt exist on Emby')
-        # episodes.remove(where('id')==item_id)
         episodes._remove(item_id)
         return
     
@@ -54,7 +50,6 @@ async def refresh_ep(ep:object, episodes:theSqliteDict):
     if not needs_title and not needs_thumb:   
         # does not have dummy episode title, dont write it back to the file
         logging.warning(f'DELETING item {item_id} - {series_name} - {current_title} - Thumb and title already good')
-        # episodes.remove(where('id') == item_id)
         episodes._remove(item_id)
         return
     
@@ -84,24 +79,16 @@ async def refresh_ep(ep:object, episodes:theSqliteDict):
     if not needs_title and not needs_thumb:   
         # does not have dummy episode title, dont write it back to the file
         logging.warning(f'DELETING item {item_id} - {series_name} - {current_title} - Thumb and title good')
-        # episodes.remove(where('id') == item_id)
         episodes._remove(item_id)
         return
 
     if datetime.now() - checked_since >= timedelta(days=days_before_giving_up):
         logging.warning(f'GIVING UP on {item_id} - {series_name} - {current_title} - needs:{" thumb" if needs_thumb else ""}{" title" if needs_title else ""}')
-        # episodes.remove(where('id') == item_id)
         episodes._remove(item_id)
         return
     
     logging.info(f'Item {item_id} - {series_name} - {current_title} - needs:{" thumb" if needs_thumb else ""}{" title" if needs_title else ""}')
 
-    # episodes.update({
-    #     'series': series_name,
-    #     'last_title': current_title,
-    #     'needs_title': needs_title,
-    #     'needs_thumb': needs_thumb
-    # }, where('id') == item_id)
     episodes._update({
         'series': series_name,
         'last_title': current_title,
@@ -111,11 +98,7 @@ async def refresh_ep(ep:object, episodes:theSqliteDict):
 
 
 async def main():
-    # db = TinyDB(f'{dir}/db.json', sort_keys=True, indent=4, separators=(',', ': '))
     db = get_db()
-    # episodes = db.table('Episodes', cache_size=3)
-    # db = theSqliteDict('./db.sqlite', autocommit=True, tablename='episodes')
-
 
     try:
         ps = Queue()
@@ -131,7 +114,6 @@ async def main():
         pass
     finally:
         db.close()
-        # close_db(db)
 
 if __name__ == '__main__':
     asyncio.run(main())

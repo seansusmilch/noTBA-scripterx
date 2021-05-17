@@ -67,16 +67,6 @@ class theSqliteDict(SqliteDict):
         out = out.replace('False', 'false')
         return json.dumps(json.loads(out), indent=4, separators=(',', ': '))
 
-    # def clear(self):
-    #     """Removes all keys and values from table
-    #     """
-    #     self.clear()
-
-    # def close(self, do_log=True, force=False):
-    #     """Closes db
-    #     """
-    #     self.close(do_log=do_log, force=force)
-
     def _where(self, key, comp, val):
         """A simple query over the table.
 
