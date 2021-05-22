@@ -1,6 +1,7 @@
 from sqlitedict import SqliteDict
 import json
 from beautifultable import BeautifulTable
+from os import get_terminal_size
 
 class theSqliteDict(SqliteDict):
     # def __init__(self, path, tablename='unnamed', autocommit=True):
@@ -131,7 +132,9 @@ class theSqliteDict(SqliteDict):
     def print_table(self):
         """Generates a nice table of the database
         """
-        tbl = BeautifulTable()
+        term_size = get_terminal_size()
+
+        tbl = BeautifulTable(maxwidth=term_size.columns)
         tbl.columns.header = ['id', 'series', 'last_title', 'checked_since', 'needs']
         for val in self.values():
             values = list(val.values())
