@@ -57,15 +57,10 @@ class theSqliteDict(SqliteDict):
         return values
 
     def __str__(self):
-        out = '{ '
+        out = {}
         for key, value in self.items():
-            out += f'"{key}": {value},'
-        out = out.rstrip(out[-1])
-        out+= '}'
-        out = out.replace("'",'"')
-        out = out.replace('True', 'true')
-        out = out.replace('False', 'false')
-        return json.dumps(json.loads(out), indent=4, separators=(',', ': '))
+            out.update({key:value})
+        return json.dumps(out, indent=4, separators=(',', ': '))
 
     def _where(self, key, comp, val):
         """A simple query over the table.
