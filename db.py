@@ -132,20 +132,26 @@ class theSqliteDict(SqliteDict):
     def print_table(self):
         """Generates a nice table of the database
         """
-        term_size = get_terminal_size()
+        term_size = get_terminal_size().columns
+        # term_size = 155
 
-        tbl = BeautifulTable(maxwidth=term_size.columns, default_alignment=BeautifulTable.ALIGN_LEFT)
-        tbl.columns.header = ['id', 'series', 'last_title', 'checked_since', 'needs']
+        tbl = BeautifulTable(
+            maxwidth=term_size if term_size > 80 else 80, 
+            default_alignment=BeautifulTable.ALIGN_LEFT
+            )
+        tbl.columns.header = ['id', 'series', 'last_title', 'checked_since', 'needs\ntitle', 'needs\nthumb']
         for val in self.values():
             values = list(val.values())
             row = values[0:4]
-            needs = []
-            if val['needs_title']:
-                needs.append('title')
-            if val['needs_thumb']:
-                needs.append('thumb')
-            row.append(','.join(needs))
+
+            # trims values to make it fit without making a new line in a cell
+            # row[:] = (elem[:int(term_size/2.9 - 3)] + '...' if len(elem) > int(term_size/2.9 - 3) else elem for elem in row)
+
+            row.append('Y' if val['needs_title'] else '')
+            row.append('Y' if val['needs_thumb'] else '')
+
             tbl.rows.append(row)
+
         tbl.rows.sort('last_title')
         tbl.rows.sort('series')
         tbl.set_style(BeautifulTable.STYLE_COMPACT)
