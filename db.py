@@ -134,7 +134,7 @@ class theSqliteDict(SqliteDict):
         """
         term_size = get_terminal_size()
 
-        tbl = BeautifulTable(maxwidth=term_size.columns)
+        tbl = BeautifulTable(maxwidth=term_size.columns, default_alignment=BeautifulTable.ALIGN_LEFT)
         tbl.columns.header = ['id', 'series', 'last_title', 'checked_since', 'needs']
         for val in self.values():
             values = list(val.values())
