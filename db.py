@@ -1,5 +1,6 @@
 from sqlitedict import SqliteDict
 import json
+from beautifultable import BeautifulTable
 
 class theSqliteDict(SqliteDict):
     # def __init__(self, path, tablename='unnamed', autocommit=True):
@@ -127,9 +128,29 @@ class theSqliteDict(SqliteDict):
         self._check_key(doc_id)
         return str(doc_id) in self
 
+    def print_table(self):
+        """Generates a nice table of the database
+        """
+        tbl = BeautifulTable()
+        tbl.columns.header = ['id', 'series', 'last_title', 'checked_since', 'needs']
+        for val in self.values():
+            values = list(val.values())
+            row = values[0:4]
+            needs = []
+            if val['needs_title']:
+                needs.append('title')
+            if val['needs_thumb']:
+                needs.append('thumb')
+            row.append(','.join(needs))
+            tbl.rows.append(row)
+        tbl.rows.sort('last_title')
+        tbl.rows.sort('series')
+        tbl.set_style(BeautifulTable.STYLE_COMPACT)
+        print(tbl)
 
 
 if __name__ == '__main__':
     from helpers import get_db
     db = get_db()
-    print(db)
+    # print(db)
+    db.print_table()

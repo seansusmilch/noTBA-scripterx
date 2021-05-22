@@ -1,3 +1,4 @@
 sqlitedict==1.7.0
-requests==2.25.1
 alive_progress==1.6.2
+beautifultable==1.0.1
+requests==2.25.1
