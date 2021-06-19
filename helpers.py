@@ -51,7 +51,7 @@ def get_current_title_by_id(item_id):
     try:
         data = json.loads(res.text)
         logging.debug('Response received and parsed!')
-
+        
         current_title = data.get("Items")[0].get("Name").strip()
         series_name = data.get("Items")[0].get("SeriesName").strip()
         return current_title, series_name
@@ -61,7 +61,10 @@ def get_current_title_by_id(item_id):
     except IndexError:
         if data.get("TotalRecordCount") == 0:
             return None, None
-
+    except AttributeError:
+        logging.critical(f'What the heck is this?? Is it not an episode? {data}')
+        sys.exit()
+    except:
         logging.critical(f'Bro wtf hapen idk what happened {item_id} {res.text}')
         sys.exit()
 
@@ -121,10 +124,13 @@ def logging_setup(file:str):
     logging.debug('Started script!')
 
 def get_db(autocommit=True):
-    return theSqliteDict(
-        './db.sqlite', 
-        autocommit=autocommit, 
-        tablename='episodes',
-        encode=json.dumps,
-        decode=json.loads
-        )
+    try:
+        return theSqliteDict(
+            f'{dir}/db.sqlite', 
+            autocommit=autocommit, 
+            tablename='episodes',
+            encode=json.dumps,
+            decode=json.loads
+            )
+    except Exception as e:
+        print(e.text)
