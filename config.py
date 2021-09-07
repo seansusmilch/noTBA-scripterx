@@ -15,8 +15,8 @@ recheck_wait_time = 1
 # Number of days to refresh an episode before giving up on it
 days_before_giving_up = 10
 
-# The limit of the number concurrent requests to run. This applies to checkAllEps
-# and refreshEps.
+# The limit of the number concurrent requests to run. 
+# This applies to checkAllEps.py and refreshEps.py
 limit_concurrent_requests = 8
 
 # Set to true if you want to check for placeholder thumbnails.
