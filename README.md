@@ -6,8 +6,9 @@ Hate having your perfect library ruined by a stray episode titled "Episode XX" o
 
 * Checks for placeholder titles such as "Episode XX" or "TBA"
 * Checks for placeholder thumbnails
-* Ability to check episodes multiple times until a certain amount of days
-* View all the episodes that currently need a title or thumbnail
+* Ability to refresh episodes multiple times until a certain amount of days pass
+* View all the episodes being tracked in the database
+* Bulk check library. All of the library or by year.
 
 ## Requirements
 
@@ -45,6 +46,9 @@ All that is needed is the `api_token` and `base_url`
 
 api_token = ''
 base_url = ''
+
+# If you'd like the script to check for thumbnails as well, set to True
+check_thumbs = False
 ```
 
 ## Check Current Media (optional)
@@ -170,15 +174,15 @@ At some point you may want to check all of your library for placeholder episode 
 I highly recommend having your logging level set to 2 (warn) in config.py when doing this
 ```
 
-Send a string of the years you want to check in a comma separated list. By default, the script will check media from the year 2021.
+Send a string of the years you want to check in a comma separated list. By default, the script will check media from the current year.
 
 ```bash 
 # checks media from years 2019, 2020 and 2021
 python3 ./checkAllEps.py 2019,2020,2021
 
-# checks media from all years
+# checks all media
 python3 ./checkAllEps.py all
 
-# checks media from 2021
+# checks media from current year
 python3 ./checkAllEps.py
 ```
