@@ -18,7 +18,7 @@ Hate having your perfect library ruined by a stray episode titled "Episode XX" o
 
 # Setup
 
-**Start in a directory that your Emby server can see. This is so that Scripter-X will be able to run them.**
+**Start in a directory that your Emby server can see.**
 
 ## Clone repository
 
