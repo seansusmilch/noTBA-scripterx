@@ -20,4 +20,4 @@ days_before_giving_up = 10
 limit_concurrent_requests = 8
 
 # Set to true if you want to check for placeholder thumbnails.
-check_thumbs = False
+check_thumbs = True
